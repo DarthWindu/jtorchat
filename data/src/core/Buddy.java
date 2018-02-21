@@ -60,11 +60,11 @@ public class Buddy {
 		this.name = name;
 
 		this.cookie = generateCookie();
-		
-		 if (now) // Prevent flooding
-		 {
-	BuddyList.addBuddy(this); 
-		 }
+
+		if (now) // Prevent flooding
+		{
+			BuddyList.addBuddy(this); 
+		}
 	}
 
 	public static String generateCookie() {
@@ -78,110 +78,113 @@ public class Buddy {
 	public void connect() {
 		if (!getBlack(this.address))
 		{	
-		if (ourSock != null) {
-			reconnectAt = -1;
-			Logger.log(Logger.WARNING, this, "Connect(V)V was called but ourSock isn't null!");
-			Thread.dumpStack();
-			return;
-		}
-		// maybe store sock connection in another variable then move it to
-		// ourSock when connected - fixed with ourSockOut
-		ThreadManager.registerWork(ThreadManager.NORMAL, new Runnable() {
+			if (ourSock != null) {
+				reconnectAt = -1;
+				Logger.log(Logger.WARNING, this, "Connect(V)V was called but ourSock isn't null!");
+				Thread.dumpStack();
+				return;
+			}
+			// maybe store sock connection in another variable then move it to
+			// ourSock when connected - fixed with ourSockOut
+			ThreadManager.registerWork(ThreadManager.NORMAL, new Runnable() {
 
-			@Override
-			public void run() {
-				if (!getBlack(Buddy.this.address))
-				{	
-				try {
-					reconnectAt = -1;
-					connectTime = System.currentTimeMillis();
-					ourSock = new Socket(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", Config.SOCKS_PORT)));
-					ourSock.connect(InetSocketAddress.createUnresolved(address + ".onion", 11009));
-					setStatus(HANDSHAKE);
-					Logger.log(Logger.INFO, Buddy.this, "Connected to {" + address + ", " + name + "}");
-					// ourSockOut = ourSock.getOutputStream();
-					ourSockOut = new OutputStreamWriter(ourSock.getOutputStream(), "UTF-8");
-					sendPing();
-					if (theirCookie != null) {
-						sendPong(theirCookie);
-						Logger.log(Logger.DEBUG, Buddy.this, "Sent " + address + " a cached pong");
-						theirCookie = null; // cbb to clear properly elsewhere
-					}
-					connectTime = -1;
-					if (ourSock == null)
-						Logger.log(Logger.SEVERE, Buddy.this, "Wtf?! ourSock is null, but we just connected");
-					connectFailCount = 0;
-					// System.err.println(ourSockOut);
-				} catch (Exception e) {
-					connectFailCount++;
-					if (ourSock != null)
+				@Override
+				public void run() {
+					if (!getBlack(Buddy.this.address))
+					{	
 						try {
-							ourSock.close();
-						} catch (IOException e1) {
-							// we should'nt have to worry about this
-						}
-					ourSock = null;
-					ourSockOut = null;
-					setStatus(OFFLINE);
-					Logger.log(Logger.WARNING, Buddy.this, "Failed to connect to " + address + " : " + e.getMessage() + " | Retry in " + (reconnectAt - System.currentTimeMillis()));
-					// e.printStackTrace();
-					connectTime = -1;
-				}
-
-				synchronized (connectLock) {
-					connectLock.notifyAll(); // incase something messed up we clear it out of the way so it should work next time
-				}
-				if (ourSockOut != null) {
-					try {
-						InputStream is = ourSock.getInputStream();
-						byte b;
-						String s = "";
-						while ((b = (byte) is.read()) != -1) {
-							if ((char) b == '\n') { // shouldnt happen
-								Logger.log(Logger.SEVERE, Buddy.this.getClass(), "Recieved unknown '" + s + "' on ourSock from " + Buddy.this.toString(true));
-								s = "";
-								continue;
+							reconnectAt = -1;
+							connectTime = System.currentTimeMillis();
+							ourSock = new Socket(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", Config.SOCKS_PORT)));
+							ourSock.connect(InetSocketAddress.createUnresolved(address + ".onion", 11009));
+							setStatus(HANDSHAKE);
+							Logger.log(Logger.INFO, Buddy.this, "Connected to {" + address + ", " + name + "}");
+							// ourSockOut = ourSock.getOutputStream();
+							ourSockOut = new OutputStreamWriter(ourSock.getOutputStream(), "UTF-8");
+							sendPing();
+							if (theirCookie != null) {
+								sendPong(theirCookie);
+								Logger.log(Logger.DEBUG, Buddy.this, "Sent " + address + " a cached pong");
+								theirCookie = null; // cbb to clear properly elsewhere
 							}
-							s += (char) b;
-							if ((char) b == ' ' && !s.substring(0, s.length() - 1).contains(" ")) {
-									BuddyIncoming.init_outin(s, Buddy.this, is);
-									s = "";
+							connectTime = -1;
+							if (ourSock == null)
+								Logger.log(Logger.SEVERE, Buddy.this, "Wtf?! ourSock is null, but we just connected");
+							connectFailCount = 0;
+							// System.err.println(ourSockOut);
+						} catch (Exception e) {
+							connectFailCount++;
+							if (ourSock != null)
+								try {
+									ourSock.close();
+								} catch (IOException e1) {
+									// we should'nt have to worry about this
+								}
+							ourSock = null;
+							ourSockOut = null;
+							setStatus(OFFLINE);
+							Logger.log(Logger.WARNING, Buddy.this, "Failed to connect to " + address + " : " + e.getMessage() + " | Retry in " + (reconnectAt - System.currentTimeMillis()));
+							// e.printStackTrace();
+							connectTime = -1;
+						}
+
+						synchronized (connectLock) {
+							connectLock.notifyAll(); // incase something messed up we clear it out of the way so it should work next time
+						}
+						if (ourSockOut != null) {
+							try {
+								InputStream is = ourSock.getInputStream();
+								byte b;
+								String s = "";
+								while ((b = (byte) is.read()) != -1) {
+									if ((char) b == '\n') { // shouldnt happen
+										Logger.log(Logger.SEVERE, Buddy.this.getClass(), "Recieved unknown '" + s + "' on ourSock from " + Buddy.this.toString(true));
+										s = "";
+										continue;
+									}
+									s += (char) b;
+									if ((char) b == ' ' && !s.substring(0, s.length() - 1).contains(" ")) {
+										BuddyIncoming.init_outin(s, Buddy.this, is);
+										s = "";
+									}
+								}
+
+								Logger.log(Logger.SEVERE, Buddy.this.getClass(),"BROKEN - " + address);
+							} catch (Exception e) {
+								e.printStackTrace();
+								try {
+									disconnect();
+								} catch (IOException ioe) {
+									// ignored
 								}
 							}
-						
-						Logger.log(Logger.SEVERE, Buddy.this.getClass(),"BROKEN - " + address);
-					} catch (Exception e) {
-						e.printStackTrace();
-						try {
-							disconnect();
-						} catch (IOException ioe) {
-							// ignored
 						}
 					}
 				}
-			}}
-		}, "Connect to " + address, "Connection thread for " + address);
-	}}
+			}, "Connect to " + address, "Connection thread for " + address);
+		}
+	}
 
-	
+
 	public void setmyStatus(int zustand) {
 
-	if (zustand > 0 & zustand < 4)
-	{
-		if (zustand == 1) { TCPort.status = "available";}
-		if (zustand == 2) { TCPort.status = "away";}
-		if (zustand == 3) { TCPort.status = "xa";}
-	//	try {
-	//		sendStatus();
-	//	} catch (IOException e) {
-	//		// TODO Auto-generated catch block
-	//		e.printStackTrace();
-	//	}
-		Logger.log(Logger.INFO, "Buddy", "Status set " + TCPort.status); 
-      }}
-	
-	
-	
+		if (zustand > 0 & zustand < 4)
+		{
+			if (zustand == 1) { TCPort.status = "available";}
+			if (zustand == 2) { TCPort.status = "away";}
+			if (zustand == 3) { TCPort.status = "xa";}
+			//	try {
+			//		sendStatus();
+			//	} catch (IOException e) {
+			//		// TODO Auto-generated catch block
+			//		e.printStackTrace();
+			//	}
+			Logger.log(Logger.INFO, "Buddy", "Status set " + TCPort.status); 
+		}
+	}
+
+
+
 	protected void setStatus(byte nstatus) {
 		if (nstatus == OFFLINE) {
 			// if (address.equals("jutujsy2ufg33ckl"))
@@ -224,43 +227,37 @@ public class Buddy {
 	private int npe1Count;
 
 	public void sendRaw(String command) throws IOException {
-		if (!getBlack(this.address))
-		{	
-		synchronized (OSO_LOCK) {
-			try {
-				Logger.log(Logger.DEBUG, this, "Send " + address + " " + command);
-				ourSockOut.write((command + ((char) 10)));
-				ourSockOut.flush();
-			} catch (IOException e) {
-				Logger.log(Logger.WARNING, this, "[" + address + "] ourSock = null; theirSock = null; " + e.getLocalizedMessage());
-				disconnect();
-				throw e;
+		if (!getBlack(this.address)) {	
+			synchronized (OSO_LOCK) {
+				try {
+					Logger.log(Logger.DEBUG, this, "Send " + address + " " + command);
+					ourSockOut.write((command + ((char) 10)));
+					ourSockOut.flush();
+				} catch (IOException e) {
+					Logger.log(Logger.WARNING, this, "[" + address + "] ourSock = null; theirSock = null; " + e.getLocalizedMessage());
+					disconnect();
+					throw e;
+				}
 			}
-		}}
+		}
 	}
 
 	public String getAddress() {
 		return address;
 	}
-	
+
 	public static Boolean getBlack(String address) {
-		if (BuddyList.black.containsKey(address))
-		{
+		if (BuddyList.black.containsKey(address)) {
 			return true;	
-		}
-		else
-		{
+		} else {
 			return false;
 		}
 	}
-	
+
 	public static Boolean getHoly(String address) {
-		if (BuddyList.holy.containsKey(address))
-		{
+		if (BuddyList.holy.containsKey(address)) {
 			return true;	
-		}
-		else
-		{
+		} else {
 			return false;
 		}
 	}
@@ -291,17 +288,16 @@ public class Buddy {
 	}
 
 	public void sendStatus() throws IOException {
-		
-		if (Config.updateStatus > 0 & Config.updateStatus < 4)
-		{
-		setmyStatus(Config.updateStatus);
-		Config.updateStatus = 0;
+
+		if (Config.updateStatus > 0 & Config.updateStatus < 4) {
+			setmyStatus(Config.updateStatus);
+			Config.updateStatus = 0;
 		}
-		
-		
+
+
 		sendRaw("status " + TCPort.status);
 		lastStatus = System.currentTimeMillis();
-	
+
 	}
 
 	public void setTheirCookie(String theirCookie) {
@@ -317,77 +313,76 @@ public class Buddy {
 			sendAddMe();
 
 		sendStatus();
-		
-		
-		if (!BuddyList.buds.containsKey(this.address))
-				{
-		BuddyList.addBuddy(this); 
-				}
-		
+
+
+		if (!BuddyList.buds.containsKey(this.address)) {
+			BuddyList.addBuddy(this); 
+		}
+
 	}
 
 	public void attatch(Socket s, Scanner sc) throws IOException {
-		
-if (!getBlack(this.address))
-{	
-		if (theirSock != null) {
-			disconnect();
-			connect(); // TODO might need to do something about this entire block
-			synchronized (connectLock) {
-				try {
-					Logger.log(Logger.NOTICE, this, "Waiting...");
-					// connectLock.wait(45000); // 45sec wait for conenct
-					connectLock.wait(); // wait for conenct
-					// !NOTE! notify is called regardless of success or failure
-				} catch (InterruptedException e) {
-				}
-			}
-		}
-		if (status == OFFLINE && connectTime != -1) {
-			// connect() method is trying to connect atm
-
-			// is severe so its printed on err
-			Logger.log(Logger.SEVERE, this, "status == OFFLINE && connectTime != -1");
-			// synchronized(connectLock) {
-			// try {
-			// // connectLock.wait(45000); // 45sec wait for conenct
-			// Logger.log(Logger.NOTICE, this, "Waiting...");
-			// connectLock.wait(); // wait for conenct
-			// // !NOTE! notify is called regardless of success or failure
-			// } catch (InterruptedException e) { }
-			// }
-		}
-		// FIXME really need to fix replying to commands before we're connected
-		this.theirSock = s;
-		this.recievedPong = false;
-		try {
-			while (sc.hasNext()) {
-				if (!getBlack(this.address))
-				{
-				String l = sc.next();
-				if (!sentPong && theirCookie != null) {
+		if (!getBlack(this.address)) {	
+			if (theirSock != null) {
+				disconnect();
+				connect(); // TODO might need to do something about this entire block
+				synchronized (connectLock) {
 					try {
-						sendPong(theirCookie);
-					} catch (NullPointerException npe) {
-						Logger.log(Logger.INFO, Buddy.this, "1Caught npe on " + address);
-						if (npe1Count++ > 5) {
-							disconnect();
-							connect();
-							return;
-						}
+						Logger.log(Logger.NOTICE, this, "Waiting...");
+						// connectLock.wait(45000); // 45sec wait for conenct
+						connectLock.wait(); // wait for conenct
+						// !NOTE! notify is called regardless of success or failure
+					} catch (InterruptedException e) {
+						//TODO REMOVE OR DO SOMETHING WITH THIS EMPTY CATCH BLOCK
 					}
 				}
-				BuddyIncoming.init(l, this);
-			}}
-		} catch (SocketException se) {
-			Logger.log(Logger.DEBUG, this, "[" + address + "] attatch() " + se.getLocalizedMessage() + " | " + se.getStackTrace()[0]);
-			// SocketExceptions are quite common and generally nothing to worry about
-		} catch (IOException e) {
-			Logger.log(Logger.WARNING, this, "[" + address + "] theirSock = null; ourSock = null; " + e.getLocalizedMessage() + " | " + e.getStackTrace()[0]);
-			disconnect();
-			throw e;
+			}
+			if (status == OFFLINE && connectTime != -1) {
+				// connect() method is trying to connect atm
+
+				// is severe so its printed on err
+				Logger.log(Logger.SEVERE, this, "status == OFFLINE && connectTime != -1");
+				// synchronized(connectLock) {
+				// try {
+				// // connectLock.wait(45000); // 45sec wait for conenct
+				// Logger.log(Logger.NOTICE, this, "Waiting...");
+				// connectLock.wait(); // wait for conenct
+				// // !NOTE! notify is called regardless of success or failure
+				// } catch (InterruptedException e) { }
+				// }
+			}
+			// FIXME really need to fix replying to commands before we're connected
+			this.theirSock = s;
+			this.recievedPong = false;
+			try {
+				while (sc.hasNext()) {
+					if (!getBlack(this.address))
+					{
+						String l = sc.next();
+						if (!sentPong && theirCookie != null) {
+							try {
+								sendPong(theirCookie);
+							} catch (NullPointerException npe) {
+								Logger.log(Logger.INFO, Buddy.this, "1Caught npe on " + address);
+								if (npe1Count++ > 5) {
+									disconnect();
+									connect();
+									return;
+								}
+							}
+						}
+						BuddyIncoming.init(l, this);
+					}
+				}
+			} catch (SocketException se) {
+				Logger.log(Logger.DEBUG, this, "[" + address + "] attatch() " + se.getLocalizedMessage() + " | " + se.getStackTrace()[0]);
+				// SocketExceptions are quite common and generally nothing to worry about
+			} catch (IOException e) {
+				Logger.log(Logger.WARNING, this, "[" + address + "] theirSock = null; ourSock = null; " + e.getLocalizedMessage() + " | " + e.getStackTrace()[0]);
+				disconnect();
+				throw e;
+			}
 		}
-}
 	}
 
 	public static boolean checkSock(Socket s) {
@@ -397,7 +392,7 @@ if (!getBlack(this.address))
 	public void sendMessage(String string) throws IOException {
 		sendRaw("message " + string);
 	}
-	
+
 	public void sendDisconnect() throws IOException {
 		sendRaw("disconnect");
 	}
@@ -454,7 +449,13 @@ if (!getBlack(this.address))
 	public void remove() throws IOException {
 		ConfigWriter.deletebuddy(this);
 		BuddyList.buds.remove(this.address);
-		try { if(this.isFullyConnected()){this.sendRaw("remove_me");} } catch (IOException e) {}
+		try {
+			if(this.isFullyConnected()) {
+				this.sendRaw("remove_me");
+			} 
+		} catch (IOException e) {
+			//TODO REMOVE OR DO SOMETHING IN THIS EMPTY CATCH BLOCK
+		}
 		disconnect();
 		APIManager.fireBuddyRemoved(this);
 	}
