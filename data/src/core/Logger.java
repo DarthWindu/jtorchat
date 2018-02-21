@@ -21,28 +21,30 @@ public class Logger {
 	private static boolean usingLog;
 	private static Object LOCK = new Object();
 	private static boolean override = true; 
-	
+
 	static {
 		oldOut = System.out;
 		boolean hasGUI = hasGUI();
 		if (hasGUI) {
 			System.setOut(new PrintStream(new OutputStream() {
-	
+
 				@Override
 				public void write(int b) throws IOException {
 					GuiLog.updateOut(String.valueOf((char) b));
 				}
-				
+
 			}));
+
 			System.setErr(new PrintStream(new OutputStream() {
-	
+
 				@Override
 				public void write(int b) throws IOException {
 					GuiLog.updateErr(String.valueOf((char) b));
-//					oldOut.print(String.valueOf((char) b));
+					//					oldOut.print(String.valueOf((char) b));
 				}
-				
+
 			}));
+
 			usingLog = true; // reffering to Log class
 		}
 	}
@@ -77,7 +79,7 @@ public class Logger {
 			}
 		}
 	}
-	
+
 	private static boolean hasGUI() {
 		try {
 			Class.forName("gui.Gui");
@@ -87,7 +89,7 @@ public class Logger {
 		}
 		return false;
 	}
-	
+
 	public static void log(int i, Object o, String string) {
 		synchronized(LOCK) {
 			if (logLevel >= i) {

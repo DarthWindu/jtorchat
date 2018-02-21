@@ -8,99 +8,99 @@ import java.util.Scanner;
 
 
 public class TCServ {
-	private static ServerSocket ss;
+	private static ServerSocket serverSock;
 	protected static boolean running = true;
 
 	public static void init() {
-		final Object o = new Object();
+		final Object obj = new Object();
 		ThreadManager.registerWork(ThreadManager.DAEMON, new Runnable() {
 			@Override
 			public void run() {
 				try {
 					try {
-						ss = new ServerSocket(Config.LOCAL_PORT);
+						serverSock = new ServerSocket(Config.LOCAL_PORT);
 					} catch (IOException e) {
 						Logger.log(Logger.FATAL, "TCServ", "Failed to start local server: " + e.getLocalizedMessage());
 						return;
 					}
-					synchronized(o) {
-						o.notifyAll();
+					synchronized(obj) {
+						obj.notifyAll();
 					}
-					while (ss.isBound() && !ss.isClosed() && running) {
+					while (serverSock.isBound() && !serverSock.isClosed() && running) {
 
-						final Socket s = ss.accept();
+						final Socket sock = serverSock.accept();
 						if (!running) {
-							s.close();
+							sock.close();
 							return;
 						}
 						ThreadManager.registerWork(ThreadManager.NORMAL, new Runnable() {
 							@Override
 							public void run() {
 								try {
-									
 
-									Scanner sc = new Scanner(new InputStreamReader(s.getInputStream(), "UTF8"));
+
+									Scanner sc = new Scanner(new InputStreamReader(sock.getInputStream(), "UTF8"));
 									sc.useDelimiter("\\n");
-									String l = sc.next();
-									if (l == null) {
+									String line = sc.next();
+									if (line == null) {
 										Logger.log(Logger.SEVERE, "TCServ", "wtf");
-										s.close();
+										sock.close();
 										sc.close();
 										return;
 									}
-									if (!l.startsWith("ping ")) {
-										Logger.log(Logger.SEVERE, "TCServ", l + " doesnt start with ping?!");
-										s.close();
+									if (!line.startsWith("ping ")) {
+										Logger.log(Logger.SEVERE, "TCServ", line + " doesnt start with ping?!");
+										sock.close();
 										sc.close();
 										return;
 									}
-									if (BuddyList.buds.containsKey(l.split(" ")[1])) { // TODO add check to see if its different cookie from last time
-										Logger.log(Logger.INFO, "TCServ", "Got ping from " + l.split(" ")[1] + " with cookie " + l.split(" ")[2]);
-										Buddy b = BuddyList.buds.get(l.split(" ")[1]);
-										Logger.log(Logger.INFO, "TCServ", "Match " +  l.split(" ")[1] + " to " + b.getAddress());
-										b.setTheirCookie(l.split(" ")[2]);
-										if (b.ourSock == null)
-											b.connect();
-										else if (b.ourSockOut != null)
+									if (BuddyList.buds.containsKey(line.split(" ")[1])) { // TODO add check to see if its different cookie from last time
+										Logger.log(Logger.INFO, "TCServ", "Got ping from " + line.split(" ")[1] + " with cookie " + line.split(" ")[2]);
+										Buddy buddy = BuddyList.buds.get(line.split(" ")[1]);
+										Logger.log(Logger.INFO, "TCServ", "Match " +  line.split(" ")[1] + " to " + buddy.getAddress());
+										buddy.setTheirCookie(line.split(" ")[2]);
+										if (buddy.ourSock == null)
+											buddy.connect();
+										else if (buddy.ourSockOut != null)
 											try {
-												b.sendPong(l.split(" ")[2]); // TODO FIXME URGENT check if not connected!
+												buddy.sendPong(line.split(" ")[2]); // TODO FIXME URGENT check if not connected!
 											} catch (SocketException se) {
 												// ignored
 											} catch (IOException ioe) {
 												ioe.printStackTrace();
 											}
-										b.attatch(s, sc);
+										buddy.attatch(sock, sc);
 									} else {
-										
-										if (l.split(" ")[1].length() == 16)  // first defend for flooding ping
+
+										if (line.split(" ")[1].length() == 16)  // first defend for flooding ping
 										{
-										if (!l.split(" ")[1].equals(Config.us)){
-										Buddy b = new Buddy(l.split(" ")[1], null, false);
-										
-										Logger.log(Logger.INFO, "TCServ", "Got ping from unknown address " + l.split(" ")[1] + " with cookie " + l.split(" ")[2]);
-										b.setTheirCookie(l.split(" ")[2]);
-										if (b.ourSock == null)
-											b.connect();
-										else
-											b.sendPong(l.split(" ")[2]); // TODO FIXME URGENT check if not connected!
-										b.attatch(s, sc);
+											if (!line.split(" ")[1].equals(Config.us)){
+												Buddy buddy = new Buddy(line.split(" ")[1], null, false);
+
+												Logger.log(Logger.INFO, "TCServ", "Got ping from unknown address " + line.split(" ")[1] + " with cookie " + line.split(" ")[2]);
+												buddy.setTheirCookie(line.split(" ")[2]);
+												if (buddy.ourSock == null)
+													buddy.connect();
+												else
+													buddy.sendPong(line.split(" ")[2]); // TODO FIXME URGENT check if not connected!
+												buddy.attatch(sock, sc);
+											}
 										}
-										}
-										
-										
+
+
 										return;
 									}
 								} catch (SocketException se) {
 									// ignored
 									try {
-										s.close();
+										sock.close();
 									} catch (IOException e1) {
 										e1.printStackTrace();
 									}
 								} catch (Exception e) {
 									e.printStackTrace();
 									try {
-										s.close();
+										sock.close();
 									} catch (IOException e1) {
 										e1.printStackTrace();
 									}
@@ -115,11 +115,11 @@ public class TCServ {
 		}, "Starting local server on " + Config.LOCAL_PORT + ".", "Server thread");
 
 		try {
-			synchronized(o) {
-				o.wait();
+			synchronized(obj) {
+				obj.wait();
 			}
 		} catch (InterruptedException e) {
-		
+			//TODO remove or do something
 		}
 		return;
 	}
@@ -127,8 +127,8 @@ public class TCServ {
 	public static void halt() {
 		running = false;
 		try {
-			if (ss != null) {
-				ss.close();
+			if (serverSock != null) {
+				serverSock.close();
 				Logger.log(Logger.NOTICE, "TCServ", "Terminated.");
 			} else
 				Logger.log(Logger.SEVERE, "TCServ", "ss == null!!");

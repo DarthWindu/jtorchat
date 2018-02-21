@@ -15,7 +15,7 @@ import javax.swing.JTextField;
 
 
 public class TCPort {
-	
+
 	// Direct compile and run from source for fixing the path
 	public static String profile_name; 
 	public static String profile_text;
@@ -30,10 +30,10 @@ public class TCPort {
 	public static void main(String[] args) {
 		GuiLog.instance = new GuiLog();
 		extern_source_path=args;
-		
+
 		try {
 
-		
+
 			if (GuiLog.instance != null)
 			{
 				if(Config.visiblelog == 1) {
@@ -59,7 +59,7 @@ public class TCPort {
 					try {
 						if (launched)
 							BuddyList.saveBuddies();
-						    BuddyList.disconnect_all();
+						BuddyList.disconnect_all();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -67,13 +67,16 @@ public class TCPort {
 			});
 
 
-	
-			
-			if (Config.loadTor == 1){TorLoader.loadTor();}
+
+
+			if (Config.loadTor == 1)
+				TorLoader.loadTor();
+
+
 			TCServ.init();
 
-		    new Gui().init();
-			
+			new Gui().init();
+
 			launched = true;
 			try {
 				BuddyList.loadBuddies();
@@ -94,7 +97,6 @@ public class TCPort {
 
 			new fileTransfer.FileTransfer();
 
-			
 
 			ThreadManager.registerWork(ThreadManager.DAEMON, new Runnable() {
 
@@ -116,7 +118,8 @@ public class TCPort {
 								} else if (l.startsWith("raw ")) { // send raw messaage to a buddy
 									BuddyList.buds.get(l.split(" ")[1]).sendRaw(l.split(" ", 3)[2]);
 
-								}}
+								}
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -128,6 +131,7 @@ public class TCPort {
 
 
 			}, "Starting console.", "Console thread");
+
 			ThreadManager.registerWork(ThreadManager.DAEMON, new Runnable() {
 
 				@Override
@@ -135,18 +139,15 @@ public class TCPort {
 					while (true) {
 						try {
 
-							if (Config.nowstart != "")
-							{
+							if (Config.nowstart != "") {
 								BuddyList.loadBuddiesRemote(Config.nowstart);
 								Config.nowstart = "";
 							}
-							if (Config.nowstartupdate != "")
-							{
+
+							if (Config.nowstartupdate != "") {
 								Config.LastCheck = Update.loadUpdate(Config.nowstartupdate);
 
-
-								if (Config.LastCheck != "close")
-								{
+								if (Config.LastCheck != "close") {
 									JTextField jtf = new JTextField();
 									jtf.setEditable(false);
 									jtf.setText(Config.LastCheck);
@@ -157,52 +158,56 @@ public class TCPort {
 								Config.nowstartupdate = "";
 							}
 
-
-							for (Buddy b : BuddyList.buds.values()) {
-								if (b.getConnectTime() != -1 && System.currentTimeMillis() - b.getConnectTime() > Config.CONNECT_TIMEOUT * 1000) {
+							for (Buddy buddy : BuddyList.buds.values()) {
+								if (buddy.getConnectTime() != -1 && System.currentTimeMillis() - buddy.getConnectTime() > Config.CONNECT_TIMEOUT * 1000) {
 									// checks if buddy hasnt finished connecting within CONNECT_TIMEOUT seconds
 									// if it hasnt then reset
-									if (b.ourSock != null)
-										b.ourSock.close();
-									if (b.theirSock != null)
-										b.theirSock.close();
-									b.ourSock = null;
-									b.theirSock = null;
-									b.setStatus(Buddy.OFFLINE);
-									b.connect();
-									Logger.log(Logger.INFO, "Status Thread", "Connection reset for " + b.getAddress());
+									if (buddy.ourSock != null)
+										buddy.ourSock.close();
+									if (buddy.theirSock != null)
+										buddy.theirSock.close();
+									buddy.ourSock = null;
+									buddy.theirSock = null;
+									buddy.setStatus(Buddy.OFFLINE);
+									buddy.connect();
+									Logger.log(Logger.INFO, "Status Thread", "Connection reset for " + buddy.getAddress());
 								}
 
-								if (b.getStatus() >= Buddy.ONLINE && (b.ourSock == null || b.theirSock == null || b.ourSock.isClosed() || b.theirSock.isClosed())) {
-									if (b.ourSock != null)
-										b.ourSock.close();
-									b.ourSock = null;
-									if (b.theirSock != null)
-										b.theirSock.close();
-									b.theirSock = null;
-									b.setStatus(Buddy.OFFLINE);
-								} else if (b.getStatus() == Buddy.HANDSHAKE && (b.ourSock == null || b.ourSock.isClosed())) {
-									if (b.ourSock != null)
-										b.ourSock.close();
-									b.ourSock = null;
-									b.setStatus(Buddy.OFFLINE);
+								if (buddy.getStatus() >= Buddy.ONLINE && (buddy.ourSock == null || buddy.theirSock == null || buddy.ourSock.isClosed() || buddy.theirSock.isClosed())) {
+									if (buddy.ourSock != null)
+										buddy.ourSock.close();
+
+									buddy.ourSock = null;
+									if (buddy.theirSock != null)
+										buddy.theirSock.close();
+
+									buddy.theirSock = null;
+									buddy.setStatus(Buddy.OFFLINE);
+								} else if (buddy.getStatus() == Buddy.HANDSHAKE && (buddy.ourSock == null || buddy.ourSock.isClosed())) {
+									if (buddy.ourSock != null)
+										buddy.ourSock.close();
+
+									buddy.ourSock = null;
+									buddy.setStatus(Buddy.OFFLINE);
 								}
 								// TODO check unsanswered pings
-								if (b.unansweredPings > 5)
-									b.disconnect();
-								if (b.ourSock != null && b.ourSockOut != null && b.theirSock != null && b.getStatus() >= Buddy.ONLINE && System.currentTimeMillis() - b.lastStatusRecieved > Config.DEAD_CONNECTION_TIMEOUT * 1000) {
+								if (buddy.unansweredPings > 5)
+									buddy.disconnect();
+
+								if (buddy.ourSock != null && buddy.ourSockOut != null && buddy.theirSock != null && buddy.getStatus() >= Buddy.ONLINE && System.currentTimeMillis() - buddy.lastStatusRecieved > Config.DEAD_CONNECTION_TIMEOUT * 1000) {
 									Logger.log(Logger.INFO, "Status Thread", "");
-									b.disconnect();
+									buddy.disconnect();
 								}
-								if (b.ourSock != null && b.theirSock != null && b.recievedPong && b.getTimeSinceLastStatus() > (Config.KEEPALIVE_INTERVAL - 20) * 1000)
-									b.sendStatus(); // Sends status every 100 seconds supposed to be every
+								if (buddy.ourSock != null && buddy.theirSock != null && buddy.recievedPong && buddy.getTimeSinceLastStatus() > (Config.KEEPALIVE_INTERVAL - 20) * 1000)
+									buddy.sendStatus(); // Sends status every 100 seconds supposed to be every
 								// KEEPALIVE_INTERVAL but 20 seconds shorter just incase :\
-								if (b.ourSock != null && b.ourSockOut != null && !b.recievedPong && (System.currentTimeMillis() - b.lastPing) > (Config.KEEPALIVE_INTERVAL / 4) * 1000)
-									b.sendPing(); //
-								if (b.reconnectAt != -1 && System.currentTimeMillis() - b.reconnectAt > 0) {
+								if (buddy.ourSock != null && buddy.ourSockOut != null && !buddy.recievedPong && (System.currentTimeMillis() - buddy.lastPing) > (Config.KEEPALIVE_INTERVAL / 4) * 1000)
+									buddy.sendPing(); 
+
+								if (buddy.reconnectAt != -1 && System.currentTimeMillis() - buddy.reconnectAt > 0) {
 									// Retries connection after having waited it out
-									Logger.log(Logger.INFO, "Status Thread", "Retrying connection to " + b.getAddress() + " as it is past " + b.reconnectAt);
-									b.connect();
+									Logger.log(Logger.INFO, "Status Thread", "Retrying connection to " + buddy.getAddress() + " as it is past " + buddy.reconnectAt);
+									buddy.connect();
 								}
 							}
 							Thread.sleep(5000);
@@ -221,6 +226,7 @@ public class TCPort {
 				Thread.sleep(2500);
 			} catch (InterruptedException e) {
 				// ignored
+				//TODO Do something with this ignored catch block :D
 			}
 
 		} catch (Exception e) {
@@ -266,18 +272,18 @@ public class TCPort {
 
 
 	public static void sendMyInfo() {
-		for (Buddy b : BuddyList.buds.values()) {
-			if (b.getStatus() >= Buddy.ONLINE) {
+		for (Buddy buddy : BuddyList.buds.values()) {
+			if (buddy.getStatus() >= Buddy.ONLINE) {
 				try {
-					b.sendClient();
-					b.sendVersion();
-					b.sendProfileName();
-					b.sendProfileText();
-					b.sendStatus();
+					buddy.sendClient();
+					buddy.sendVersion();
+					buddy.sendProfileName();
+					buddy.sendProfileText();
+					buddy.sendStatus();
 				} catch (IOException ioe) {
 					try {
 						ioe.printStackTrace();
-						b.disconnect(); // something is iffy if we error out
+						buddy.disconnect(); // something is iffy if we error out
 					} catch (IOException e) {
 						// ignored
 					}
@@ -285,35 +291,38 @@ public class TCPort {
 			}
 		}
 	}
-	
-	public static void sendMyProfil() {
-		for (Buddy b : BuddyList.buds.values()) {
-			if (b.getStatus() >= Buddy.ONLINE) {
+
+	public static void sendMyProfil() /*  There's a typo in the method name (I think)!  */{
+		for (Buddy buddy : BuddyList.buds.values()) {
+			if (buddy.getStatus() >= Buddy.ONLINE) {
 				try {
-					b.sendProfileName();
-					b.sendProfileText();
+					buddy.sendProfileName();
+					buddy.sendProfileText();
 				} catch (IOException ioe) {
 					try {
 						ioe.printStackTrace();
-						b.disconnect(); // something is iffy if we error out
+						buddy.disconnect(); // something is iffy if we error out
 					} catch (IOException e) {
 						// ignored
+						//plzzz this is badd practice - DW
 					}
 				}
 			}
 		}
 	}
+
 	public static void sendMyStatus() {
-		for (Buddy b : BuddyList.buds.values()) {
-			if (b.getStatus() >= Buddy.ONLINE) {
+		for (Buddy buddy : BuddyList.buds.values()) {
+			if (buddy.getStatus() >= Buddy.ONLINE) {
 				try {
-					b.sendStatus();
+					buddy.sendStatus();
 				} catch (IOException ioe) {
 					try {
 						ioe.printStackTrace();
-						b.disconnect(); // something is iffy if we error out
+						buddy.disconnect(); // something is iffy if we error out
 					} catch (IOException e) {
 						// ignored
+						//plzzz this is badd practice - DW
 					}
 				}
 			}

@@ -10,11 +10,11 @@ public class ThreadManager {
 	 * Intend to do something with type param, but for now, useless
 	 * 5/12/11 - No intention to use type param, too lazy to remove it
 	 */
-	public static void registerWork(int type, final Runnable runnable, String s, String name) {
-		if (s != null)
-			Logger.log(Logger.INFO, "ThreadManager", s);
+	public static void registerWork(int type, final Runnable runnable, String msg, String name) {
+		if (msg != null)
+			Logger.log(Logger.INFO, "ThreadManager", msg);
 //			System.out.println("[" + ThreadManager.class.getCanonicalName() + "] " + s);
-		Runnable r = new Runnable() {
+		Runnable rnnble = new Runnable() {
 
 			@Override
 			public void run() {
@@ -23,20 +23,20 @@ public class ThreadManager {
 				try {
 					runnable.run();
 				} catch (Exception e) {
-					// one hopes this doesnt happen
+					// one hopes this doesn't happen
 					e.printStackTrace();
 				}
 //				threadCount--;
 //				System.out.println("threadCount--: " + threadCount);
 			}
 		};
-		Thread t;
+		Thread thred;
 		if (name != null)
-			t = new Thread(r, name);
+			thred = new Thread(rnnble, name);
 		else
-			t = new Thread(r);
-		t.setDaemon(type == DAEMON);
-		t.start();
+			thred = new Thread(rnnble);
+		thred.setDaemon(type == DAEMON);
+		thred.start();
 	}
 
 }
