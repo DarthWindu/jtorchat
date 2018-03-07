@@ -9,97 +9,114 @@ import gui.GuiChatWindow;
 
 public class ChatWindow {
 
-//	update_window(type, w,new_entry,new_textarea,send,add_delay) {
+	//	update_window(type, w,new_entry,new_textarea,send,add_delay) {
 
-	
-	public static void update_window(int type, GuiChatWindow w,String new_entry, String new_textarea, String send, boolean add_delay) {
+
+	public static void update_window(MessageType type, GuiChatWindow window,String newEntry, String newTextArea, String send, boolean addDelay) {
 		String delay="";
-		
-		if(add_delay)
-		{delay = "[Delayed] ";}
-		
-		// Not in use but useful
-		if(type==0)
-		{
+
+		if(addDelay)
+			delay = "[Delayed] ";
+
+		switch(type) {
+
+		case PRIVATE:
+			window.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
+			window.append("Me", delay+"Private: ");
+			window.addUrlText("Plain",newEntry + "\n");
+			break;
+
+		case REST:
+			//Do nothing
+			break;
+
+			//RECEIVE functions
+
+		case RECEIVE_ACTION:
+			window.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
+			window.append("Them", delay+"* " + window.b.toString()+" ");
+			window.addUrlText("Plain",newEntry + "\n");
+			break;
+
+		case RECEIVE_NORMAL:
+			window.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
+			window.append("Them", delay+"Them: ");
+			window.addUrlText("Plain",newEntry + "\n");
+			break;
+
+		case RECEIVE_PAGE:
+			window.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
+			window.append("Them", delay+"Them --> ");
+			window.addUrlText("Plain",newEntry + "\n");
+			break;
+
+			//SEND functions
+
+		case SEND_ACTION:
+			window.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
+
+			if(TCPort.profile_name!=""){window.append("Me", delay+"* " + TCPort.profile_name+" ");}else
+			{window.append("Me", delay+"* " + Config.us+" ");}
+			window.addUrlText("Plain",newEntry + "\n");
+			break;
+
+		case SEND_NORMAL:
+			window.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
+			window.append("Me", delay+"Me: ");
+			window.addUrlText("Plain",newEntry + "\n");
+			break;
+
+		case SEND_PAGE:
+			window.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
+			window.append("Me", delay+"Me --> ");
+			window.addUrlText("Plain",newEntry.trim() + "\n");
+			break;
+
+		default:
+			break;
+
 		}
-		// Send or receive a normal Message
-		else if(type==1)
-		{
-		w.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
-		w.append("Me", delay+"Me: ");
-		w.addUrlText("Plain",new_entry + "\n");
+
+		window.get_textPane1().setCaretPosition(window.get_textPane1().getDocument().getLength());
+
+		if(newTextArea != null)
+			window.get_textArea4().setText(newTextArea);
+
+
+		window.get_textArea4().requestFocusInWindow();
+
+		/*
+		 * COMMENT T1:
+		 * 
+		 * https://gist.github.com/DarthWindu/2f9eda0407cb85a107952a4262fef3cf
+		 * 
+		 * See gist above for a test case involving the following expression. Apparently, there is a situation where this expression CAN be appropriate (although I still
+		 * recommend against it), so I'm going to leave this unless I can prove that it is indeed a bug as I initially
+		 * thought.
+		 * 
+		 * - DW
+		 */
+		if(send!="") {	
+
+			send = send.trim().replaceAll("\n", "\\\\n"/*this expresion evalutates to @"\\n" so i believe this is a bug, but I haven't tested yet*/).replaceAll("\r", "");
+
+			try {
+				if (!addDelay) {
+					window.b.sendMessage(send);
+				} else {
+					FileOutputStream fos = new FileOutputStream(Config.MESSAGE_DIR + window.b.getAddress() + ".txt", true);
+					fos.write(("[Delayed] "+send + "\n").getBytes());
+					fos.close();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		else if(type==2)
-		{
-		w.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
-		w.append("Them", delay+"Them: ");
-		w.addUrlText("Plain",new_entry + "\n");
-		}
-		// Send or receive what you or the other do
-		else if(type==3)
-		{
-		w.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
-		
-		if(TCPort.profile_name!=""){w.append("Me", delay+"* " + TCPort.profile_name+" ");}else
-		                           {w.append("Me", delay+"* " + Config.us+" ");}
-		w.addUrlText("Plain",new_entry + "\n");
-		}
-		else if(type==4)
-		{
-		w.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
-		w.append("Them", delay+"* " + w.b.toString()+" ");
-		w.addUrlText("Plain",new_entry + "\n");
-		}
-		// Send or receive a page
-		else if(type==5)
-		{
-		w.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
-		w.append("Me", delay+"Me --> ");
-		w.addUrlText("Plain",new_entry.trim() + "\n");
-		}
-		else if(type==6)
-		{
-		w.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
-		w.append("Them", delay+"Them --> ");
-		w.addUrlText("Plain",new_entry + "\n");
-		}
-		// Private
-		else if(type==7)
-		{
-		w.append("Time Stamp", "(" + GuiChatWindow.getTime() + ") ");
-		w.append("Me", delay+"Private: ");
-		w.addUrlText("Plain",new_entry + "\n");
-		}
-		
-		w.get_textPane1().setCaretPosition(w.get_textPane1().getDocument().getLength());
-		
-		if(new_textarea!=null){
-		w.get_textArea4().setText(new_textarea);
-		}
-		w.get_textArea4().requestFocusInWindow();
-		
-		if(send!=""){	
-			
-		send = send.trim().replaceAll("\n", "\\\\n").replaceAll("\r", "");
-	
-		try {
-		if (!add_delay)
-		{
-		w.b.sendMessage(send);
-        }
-		else {
-			FileOutputStream fos = new FileOutputStream(Config.MESSAGE_DIR + w.b.getAddress() + ".txt", true);
-			fos.write(("[Delayed] "+send + "\n").getBytes());
-			fos.close();
-		}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}}
-		
-		
-		
+
+
+
 	}
-	
+
 
 }

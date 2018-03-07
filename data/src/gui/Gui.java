@@ -38,9 +38,11 @@ import core.BuddyList;
 import core.Config;
 import core.Logger;
 import core.TCPort;
+import core.TorLoader;
 import core.language;
 
 import util.ChatWindow;
+import util.MessageType;
 import util.TCIconRenderer;
 import util.Tray;
 
@@ -765,7 +767,7 @@ public class Gui {
 			right=list_of_commands.out_command(buddy, msg.substring(10),w,true);
 			}
 			
-			if(right){ChatWindow.update_window(2, w,msg,null,"",!buddy.isFullyConnected());}
+			if(right){ChatWindow.update_window(MessageType.RECEIVE_NORMAL, w,msg,null,"",!buddy.isFullyConnected());}
 			
 		if(Config.alert_on_message==1){
 			if (!w.isFocused() && !(Buddy.getBlack(((Buddy) buddy).getAddress()))) {

@@ -1,12 +1,13 @@
 package commands;
 
 import util.ChatWindow;
+import util.MessageType;
 import gui.GuiChatWindow;
 import core.Buddy;
 import core.language;
 
 public class in_help {
-	public static void command(Buddy buddy, String s, GuiChatWindow w) {
+	public static void command(Buddy buddy, String s, GuiChatWindow window) {
 		
 	String help;
 	
@@ -16,7 +17,7 @@ public class in_help {
 	help += "/page site\n";
 	help += "/log\n";
 		
-	ChatWindow.update_window(7, w,help,"","",false);
+	ChatWindow.update_window(MessageType.PRIVATE, window, help, "", "",false);
 
 	}
 }
