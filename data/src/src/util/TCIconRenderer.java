@@ -141,16 +141,16 @@ public class TCIconRenderer extends DefaultTreeCellRenderer {
 
 	public static ImageIcon getStatusIcon(int status) {
 		// TODO Auto-generated method stub
-		if (status == Buddy.AWAY) {
+		if (status == Buddy.Status.AWAY) {
 			return awayIcon;
-		} else if (status == Buddy.HANDSHAKE) {
+		} else if (status == Buddy.Status.HANDSHAKE) {
 			return handshakeIcon;
-		} else if (status == Buddy.OFFLINE) {
+		} else if (status == Buddy.Status.OFFLINE) {
 			return offlineIcon;
-		} else if (status == Buddy.ONLINE) {
+		} else if (status == Buddy.Status.ONLINE) {
 			// System.out .println("onlie");
 			return onlineIcon;
-		} else if (status == Buddy.XA) {
+		} else if (status == Buddy.Status.XA) {
 			return xaIcon;
 		}
 		return null;

@@ -69,7 +69,7 @@ public class TCServ {
 											} catch (IOException ioe) {
 												ioe.printStackTrace();
 											}
-										buddy.attatch(sock, sc);
+										buddy.attach(sock, sc);
 									} else {
 
 										if (line.split(" ")[1].length() == 16)  // first defend for flooding ping
@@ -83,7 +83,7 @@ public class TCServ {
 													buddy.connect();
 												else
 													buddy.sendPong(line.split(" ")[2]); // TODO FIXME URGENT check if not connected!
-												buddy.attatch(sock, sc);
+												buddy.attach(sock, sc);
 											}
 										}
 

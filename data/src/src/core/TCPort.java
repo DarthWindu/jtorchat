@@ -168,12 +168,12 @@ public class TCPort {
 										buddy.theirSock.close();
 									buddy.ourSock = null;
 									buddy.theirSock = null;
-									buddy.setStatus(Buddy.OFFLINE);
+									buddy.setStatus(Buddy.Status.OFFLINE);
 									buddy.connect();
 									Logger.log(Logger.INFO, "Status Thread", "Connection reset for " + buddy.getAddress());
 								}
 
-								if (buddy.getStatus() >= Buddy.ONLINE && (buddy.ourSock == null || buddy.theirSock == null || buddy.ourSock.isClosed() || buddy.theirSock.isClosed())) {
+								if (buddy.getStatus() >= Buddy.Status.ONLINE && (buddy.ourSock == null || buddy.theirSock == null || buddy.ourSock.isClosed() || buddy.theirSock.isClosed())) {
 									if (buddy.ourSock != null)
 										buddy.ourSock.close();
 
@@ -182,19 +182,19 @@ public class TCPort {
 										buddy.theirSock.close();
 
 									buddy.theirSock = null;
-									buddy.setStatus(Buddy.OFFLINE);
-								} else if (buddy.getStatus() == Buddy.HANDSHAKE && (buddy.ourSock == null || buddy.ourSock.isClosed())) {
+									buddy.setStatus(Buddy.Status.OFFLINE);
+								} else if (buddy.getStatus() == Buddy.Status.HANDSHAKE && (buddy.ourSock == null || buddy.ourSock.isClosed())) {
 									if (buddy.ourSock != null)
 										buddy.ourSock.close();
 
 									buddy.ourSock = null;
-									buddy.setStatus(Buddy.OFFLINE);
+									buddy.setStatus(Buddy.Status.OFFLINE);
 								}
 								// TODO check unsanswered pings
 								if (buddy.unansweredPings > 5)
 									buddy.disconnect();
 
-								if (buddy.ourSock != null && buddy.ourSockOut != null && buddy.theirSock != null && buddy.getStatus() >= Buddy.ONLINE && System.currentTimeMillis() - buddy.lastStatusRecieved > Config.DEAD_CONNECTION_TIMEOUT * 1000) {
+								if (buddy.ourSock != null && buddy.ourSockOut != null && buddy.theirSock != null && buddy.getStatus() >= Buddy.Status.ONLINE && System.currentTimeMillis() - buddy.lastStatusRecieved > Config.DEAD_CONNECTION_TIMEOUT * 1000) {
 									Logger.log(Logger.INFO, "Status Thread", "");
 									buddy.disconnect();
 								}
@@ -273,7 +273,7 @@ public class TCPort {
 
 	public static void sendMyInfo() {
 		for (Buddy buddy : BuddyList.buds.values()) {
-			if (buddy.getStatus() >= Buddy.ONLINE) {
+			if (buddy.getStatus() >= Buddy.Status.ONLINE) {
 				try {
 					buddy.sendClient();
 					buddy.sendVersion();
@@ -294,7 +294,7 @@ public class TCPort {
 
 	public static void sendMyProfil() /*  There's a typo in the method name (I think)!  */{
 		for (Buddy buddy : BuddyList.buds.values()) {
-			if (buddy.getStatus() >= Buddy.ONLINE) {
+			if (buddy.getStatus() >= Buddy.Status.ONLINE) {
 				try {
 					buddy.sendProfileName();
 					buddy.sendProfileText();
@@ -313,7 +313,7 @@ public class TCPort {
 
 	public static void sendMyStatus() {
 		for (Buddy buddy : BuddyList.buds.values()) {
-			if (buddy.getStatus() >= Buddy.ONLINE) {
+			if (buddy.getStatus() >= Buddy.Status.ONLINE) {
 				try {
 					buddy.sendStatus();
 				} catch (IOException ioe) {

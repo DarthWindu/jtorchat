@@ -17,9 +17,13 @@ import util.RequestHTTP;
 
 
 public class BuddyList {
-	public static HashMap<String, Buddy> buds = new HashMap<String, Buddy>();
-	public static HashMap<String, Buddy> black = new HashMap<String, Buddy>();
-	public static HashMap<String, Buddy> holy = new HashMap<String, Buddy>();
+	public static HashMap<String, Buddy> buds, black, holy;
+	
+	static {
+	    buds = new HashMap<>();
+	    black = new HashMap<>();
+	    holy = new HashMap<>();
+    }
 
 	public static void  disconnect_all()
 	{
@@ -83,13 +87,13 @@ public class BuddyList {
 				if(!line.substring(0, 16).equals(Config.us)) {
 					if (line.length() > 16) {
 						buddy = new Buddy(line.substring(0, 16), line.substring(17), true); 
-						buddy.reconnectAt = System.currentTimeMillis() + 15000 + random.nextInt(30000);
+						buddy.setReconnectAt(System.currentTimeMillis() + 15000 + random.nextInt(30000));
 						ConfigWriter.loadbuddy(buddy);
 					} else
 						buddy = new Buddy(line.substring(0, 16), null, true);
 
 
-					buddy.reconnectAt = System.currentTimeMillis() + 15000 + random.nextInt(30000);
+					buddy.setReconnectAt(System.currentTimeMillis() + 15000 + random.nextInt(30000));
 					ConfigWriter.loadbuddy(buddy);
 				}
 			}
@@ -207,13 +211,14 @@ public class BuddyList {
 		Random random = new Random();
 		ArrayList<String> input = RequestHTTP.load(remote_bl_URL);
 		String line = "";
+		String matchString = "^([a-zA-Z0-9]{16}(?:[ !].{0,}||))";
 		
 		for (int index = 0; index < input.size(); index++) {
 			line = input.get(index);
 
 			if (line.length() >= 16) {
 				// regex checker
-				if (line.matches("^([a-zA-Z0-9]{16}(?:[ !].{0,}||))")) {
+				if (line.matches(matchString)) {
 					// from 0 to 16 is address, 17 onwards is name
 					// Ignore any buddies already in your contact list
 					if (!buds.containsKey(line.substring(0, 16))) {
@@ -222,13 +227,13 @@ public class BuddyList {
 							if (line.length() > 16) {
 								Buddy b = new Buddy(line.substring(0, 16),
 										line.substring(17),true); // .connect();
-								b.reconnectAt = System.currentTimeMillis()
-										+ 15000 + random.nextInt(30000);
+								b.setReconnectAt(System.currentTimeMillis()
+														 + 15000 + random.nextInt(30000));
 							} else {
-								new Buddy(line.substring(0, 16), null,true).reconnectAt = System
-										.currentTimeMillis()
-										+ 15000
-										+ random.nextInt(30000); // .connect();
+								new Buddy(line.substring(0, 16), null, true).setReconnectAt(System
+																									.currentTimeMillis()
+																									+ 15000
+																									+ random.nextInt(30000)); // .connect();
 							}
 						}
 					}
@@ -243,6 +248,7 @@ public class BuddyList {
 				 *  - Darth Windu
 				 */
 				break;
+				//FIXME Add condition to loop
 			}    
 		}   
 	}

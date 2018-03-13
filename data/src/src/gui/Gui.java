@@ -563,7 +563,7 @@ public class Gui {
 
 	public static void pardon(Buddy buddy) {
 
-		if (buddy.getStatus() >= Buddy.ONLINE) {
+		if (buddy.getStatus() >= Buddy.Status.ONLINE) {
 
 			MutableTreeNode node = nodeMap.remove(buddy.getAddress());
 			if (node != null) // remove entry in the gui
@@ -627,28 +627,28 @@ public class Gui {
 			Logger.oldOut.println(buddy + " changed from " + Buddy.getStatusName(oldStatus) + " to " + Buddy.getStatusName(newStatus));
 			
 			
-			if (newStatus == Buddy.ONLINE && oldStatus != newStatus) {
+			if (newStatus == Buddy.Status.ONLINE && oldStatus != newStatus) {
 				if(Config.alert_on_status_change==1){
 					GuiAlert alert;
 					alert = new GuiAlert(buddy.toString() + " is online.");
 					alert.start();
 					}}
 
-			if (newStatus == Buddy.AWAY && oldStatus != newStatus) {
+			if (newStatus == Buddy.Status.AWAY && oldStatus != newStatus) {
 				if(Config.alert_on_status_change==1){
 					GuiAlert alert;
 					alert = new GuiAlert(buddy.toString() + " is away.");
 					alert.start();
 					}}
 			
-			if (newStatus == Buddy.XA && oldStatus != newStatus) {
+			if (newStatus == Buddy.Status.XA && oldStatus != newStatus) {
 				if(Config.alert_on_status_change==1){
 					GuiAlert alert;
 					alert = new GuiAlert(buddy.toString() + " is far away.");
 					alert.start();
 					}}
 			
-			if (newStatus >= Buddy.ONLINE && oldStatus <= Buddy.HANDSHAKE) {
+			if (newStatus >= Buddy.Status.ONLINE && oldStatus <= Buddy.Status.HANDSHAKE) {
 				
 				if (!BuddyList.black.containsKey(buddy.getAddress())) {
 					MutableTreeNode node = nodeMap.remove(buddy.getAddress());
@@ -703,7 +703,7 @@ public class Gui {
 
 				}
 
-			} else if (oldStatus >= Buddy.ONLINE && newStatus <= Buddy.HANDSHAKE) {
+			} else if (oldStatus >= Buddy.Status.ONLINE && newStatus <= Buddy.Status.HANDSHAKE) {
 
 				if(Config.alert_on_status_change==1){
 				GuiAlert alert;

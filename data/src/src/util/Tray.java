@@ -109,7 +109,7 @@ public static void updateTray()
     	image = status.equalsIgnoreCase("offline") ? TCIconRenderer.offlineImage : status.equalsIgnoreCase("handshake") ? TCIconRenderer.handshakeImage : status.equalsIgnoreCase("available") ? TCIconRenderer.onlineImage : status.equalsIgnoreCase("away") ? TCIconRenderer.awayImage : status.equalsIgnoreCase("xa") ? TCIconRenderer.xaImage : null;
     } else {
     	byte status = BuddyList.buds.get(Config.us).getStatus();
-    	image = status == Buddy.OFFLINE ? TCIconRenderer.offlineImage : status == Buddy.HANDSHAKE ? TCIconRenderer.handshakeImage : status == Buddy.ONLINE ? TCIconRenderer.onlineImage : status == Buddy.AWAY ? TCIconRenderer.awayImage : status == Buddy.XA ? TCIconRenderer.xaImage : null;
+    	image = status == Buddy.Status.OFFLINE ? TCIconRenderer.offlineImage : status == Buddy.Status.HANDSHAKE ? TCIconRenderer.handshakeImage : status == Buddy.Status.ONLINE ? TCIconRenderer.onlineImage : status == Buddy.Status.AWAY ? TCIconRenderer.awayImage : status == Buddy.Status.XA ? TCIconRenderer.xaImage : null;
     }
 	if (trayIcon != null) {
     trayIcon.setImage(image);

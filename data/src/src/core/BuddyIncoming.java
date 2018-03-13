@@ -4,11 +4,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import fileTransfer.FileTransfer;
+import util.Status;
 
 public class BuddyIncoming {
+    private static String charsToReplace = "[^a-zA-Z_]";
+    
 	public static void init(String in, Buddy buddy)	{
-		// Fix filedata Problems and make it saver
-		String save = in.split(" ")[0].replaceAll("[^a-zA-Z_]", "");
+		//TODO determine if FixMe A is still relevant
+		// FIXME FixMe A: Fix filedata Problems and make it saver
+		String save = in.split(" ")[0].replaceAll(charsToReplace, "");
 		initSwitchSave(save, in, buddy);
 	}
 
@@ -16,7 +20,7 @@ public class BuddyIncoming {
 	// Why there are two incoming streams?
 	public static void init_outin(String input, Buddy buddy, InputStream inputStream) {
 		// Fix filedata Problems and make it saver
-		String save = input.split(" ")[0].replaceAll("[^a-zA-Z_]", "");
+		String save = input.split(" ")[0].replaceAll(charsToReplace, "");
 
 		if (save.equals("filename")) {FileTransfer.in_filename(buddy,input,inputStream);}
 		else if (save.equals("filedata")) {FileTransfer.in_filedata(buddy,input,inputStream);}
@@ -85,33 +89,33 @@ public class BuddyIncoming {
 
 
 	private static void in_status(String in, Buddy buddy) {
-		buddy.lastStatusRecieved = System.currentTimeMillis();
-		byte nstatus = in.split(" ")[1].equalsIgnoreCase("available") ? Buddy.ONLINE : in.split(" ")[1].equalsIgnoreCase("xa") ? Buddy.XA : in.split(" ")[1].equalsIgnoreCase("away") ? Buddy.AWAY : -1;
-		buddy.setStatus(nstatus); // checks for change in method
+		buddy.setLastStatusRecieved(System.currentTimeMillis());
+		byte status = in.split(" ")[1].equalsIgnoreCase("available") ? Status.ONLINE : in.split(" ")[1].equalsIgnoreCase("xa") ? Status.XA : in.split(" ")[1].equalsIgnoreCase("away") ? Status.AWAY : -1;
+		buddy.setStatus(status); // checks for change in method
 	}
 
 
 	private static void in_profile_name(String in, Buddy buddy) {
-		String old = buddy.profile_name;
-		buddy.profile_name = in.split(" ", 2)[1];
-		APIManager.fireProfileNameChange(buddy, buddy.profile_name, old);
+		String old = buddy.getProfile_name();
+		buddy.setProfile_name(in.split(" ", 2)[1]);
+		APIManager.fireProfileNameChange(buddy, buddy.getProfile_name(), old);
 	}
 
 
 	private static void in_client(String in, Buddy buddy) {
-		buddy.client = in.split(" ", 2)[1];
+		buddy.setClient(in.split(" ", 2)[1]);
 	}
 
 
 	private static void in_version(String in, Buddy buddy) {
-		buddy.version = in.split(" ", 2)[1];
+		buddy.setVersion(in.split(" ", 2)[1]);
 	}
 
 
 	private static void in_profile_text(String in, Buddy buddy) {
-		String old = buddy.profile_text;
-		buddy.profile_text = in.split(" ", 2)[1];
-		APIManager.fireProfileTextChange(buddy, buddy.profile_text, old);
+		String old = buddy.getProfile_text();
+		buddy.setProfile_text(in.split(" ", 2)[1]);
+		APIManager.fireProfileTextChange(buddy, buddy.getProfile_text(), old);
 	}
 
 
@@ -131,7 +135,7 @@ public class BuddyIncoming {
 
 
 	private static void in_not_implemented(String in, Buddy buddy) {
-		Logger.log(Logger.NOTICE, buddy, "Recieved " + in.trim() + " from " + buddy.address);
+		Logger.log(Logger.NOTICE, buddy, "Recieved " + in.trim() + " from " + buddy.getAddress());
 	}
 
 
@@ -151,7 +155,7 @@ public class BuddyIncoming {
 
 
 	private static void in_nothing(String in, Buddy buddy) {
-		Logger.log(Logger.WARNING, buddy, "Recieved unknown from " + buddy.address + " " + in);
+		Logger.log(Logger.WARNING, buddy, "Recieved unknown from " + buddy.getAddress() + " " + in);
 		try {
 			buddy.sendRaw("not_implemented ");
 		} catch (IOException e) {
@@ -162,11 +166,11 @@ public class BuddyIncoming {
 
 
 	private static void in_pong(String in, Buddy buddy) {
-		if (in.split(" ")[1].equals(buddy.cookie)) {
-			buddy.unansweredPings = 0;
-			buddy.recievedPong = true;
-			Logger.log(Logger.NOTICE, buddy, buddy.address + " sent pong");
-			if (buddy.ourSock != null && buddy.ourSockOut != null && buddy.status > Buddy.OFFLINE) {
+		if (in.split(" ")[1].equals(buddy.getCookie())) {
+			buddy.setUnansweredPings(0);
+			buddy.setReceivedPong(true);
+			Logger.log(Logger.NOTICE, buddy, buddy.getAddress() + " sent pong");
+			if (buddy.getOurSock() != null && buddy.getOurSockOut() != null && buddy.getStatus() > Status.OFFLINE) {
 				try {
 					buddy.onFullyConnected();
 				} catch (IOException e) {
@@ -175,7 +179,7 @@ public class BuddyIncoming {
 				}
 			}
 			else {
-				Logger.log(Logger.SEVERE, buddy, "[" + buddy.address + "] - :/ We should be connected here. Resetting connection!");
+				Logger.log(Logger.SEVERE, buddy, "[" + buddy.getAddress() + "] - :/ We should be connected here. Resetting connection!");
 				try {
 					buddy.disconnect();
 				} catch (IOException e) {
@@ -186,8 +190,8 @@ public class BuddyIncoming {
 				return;
 			}
 		} else {
-			Logger.log(Logger.SEVERE, buddy, "!!!!!!!!!! " + buddy.address + " !!!!!!!!!! sent us bad pong !!!!!!!!!!");
-			Logger.log(Logger.SEVERE, buddy, "!!!!!!!!!! " + buddy.address + " !!!!!!!!!! ~ Disconnecting them");
+			Logger.log(Logger.SEVERE, buddy, "!!!!!!!!!! " + buddy.getAddress() + " !!!!!!!!!! sent us bad pong !!!!!!!!!!");
+			Logger.log(Logger.SEVERE, buddy, "!!!!!!!!!! " + buddy.getAddress() + " !!!!!!!!!! ~ Disconnecting them");
 			try {
 				buddy.disconnect();
 			} catch (IOException e) {
@@ -199,7 +203,7 @@ public class BuddyIncoming {
 
 
 	private static void in_ping(String in, Buddy buddy) {
-		if (buddy.ourSock == null) {
+		if (buddy.getOurSock() == null) {
 			buddy.connect();
 		}
 		try {
