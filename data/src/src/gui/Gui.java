@@ -8,7 +8,9 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.swing.JFrame;
@@ -359,22 +361,23 @@ public class Gui {
 
 	public static void setLAF(String string) {
 		try {
-			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-				if (string.equals(info.getName())) {
-					UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (UnsupportedLookAndFeelException e) {
-			// handle exception
-		} catch (ClassNotFoundException e) {
-			// handle exception
-		} catch (InstantiationException e) {
-			// handle exception
-		} catch (IllegalAccessException e) {
-			// handle exception
+      //List<LookAndFeelInfo> lookAndFeelInfos = Collections.t
+      LookAndFeelInfo[] lookAndFeelInfos = UIManager.getInstalledLookAndFeels();
+      boolean validInfo = false;
+
+      for (int index = 0; index < lookAndFeelInfos.length && !validInfo; index ++) {
+
+        if (string.equals(lookAndFeelInfos[index].getName())) {
+
+          UIManager.setLookAndFeel(lookAndFeelInfos[index].getClassName());
+          validInfo = true;
+        }
+      }
+
+		} catch (UnsupportedLookAndFeelException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+			e.printStackTrace();
 		}
-	}
+  }
 
 
 	private JMenuItem getMenuItem(String s, ActionListener al) {

@@ -212,8 +212,8 @@ public class BuddyList {
 		ArrayList<String> input = RequestHTTP.load(remote_bl_URL);
 		String line = "";
 		String matchString = "^([a-zA-Z0-9]{16}(?:[ !].{0,}||))";
-		
-		for (int index = 0; index < input.size(); index++) {
+
+		for (int index = 0; index < input.size() && !line.startsWith("<CLOSE_STREAM>"); index++) {
 			line = input.get(index);
 
 			if (line.length() >= 16) {
@@ -240,16 +240,17 @@ public class BuddyList {
 				}
 			}
 
-			if(line.startsWith("<CLOSE_STREAM>")) {
-				/*
-				 * Break statements are bad practice. Let's figure out a way to avoid them.
-				 * Perhaps adding !line.startsWith("<CLOSE_STREAM>") to the loop condition?
-				 * 
-				 *  - Darth Windu
-				 */
+      /*
+       * Break statements are bad practice. Let's figure out a way to avoid them.
+       * Perhaps adding !line.startsWith("<CLOSE_STREAM>") to the loop condition?
+       *
+       *  - Darth Windu
+       */
+			/*if(line.startsWith("<CLOSE_STREAM>")) {
+
 				break;
 				//FIXME Add condition to loop
-			}    
+			} */
 		}   
 	}
 

@@ -20,7 +20,7 @@ public class TCPort {
 	public static String profile_name; 
 	public static String profile_text;
 	public static String status = "available"; // available away xa
-	public static String[] extern_source_path;
+	public static String[] externalSourcePath;
 	private static boolean launched;
 	@SuppressWarnings("unused")
 	private static boolean halted;
@@ -29,7 +29,7 @@ public class TCPort {
 
 	public static void main(String[] args) {
 		GuiLog.instance = new GuiLog();
-		extern_source_path=args;
+		externalSourcePath =args;
 
 		try {
 
@@ -103,29 +103,28 @@ public class TCPort {
 				@Override
 				public void run() {
 					try {
-						Scanner s = new Scanner(System.in);
+						Scanner scanner = new Scanner(System.in);
 						try {
-							while (s.hasNextLine()) {
-								String l = s.nextLine();
-								if (l.startsWith("tskill ")) { // kills theirsock of the buddy following tskill
-									BuddyList.buds.get(l.split(" ")[1]).theirSock.close();
-									BuddyList.buds.get(l.split(" ")[1]).theirSock = null;
-								} else if (l.startsWith("oskill ")) { // kills oursock of the buddy following oskill
-									BuddyList.buds.get(l.split(" ")[1]).ourSock.close();
-									BuddyList.buds.get(l.split(" ")[1]).ourSock = null;
-								} else if (l.startsWith("msg ")) { // send messaage to a buddy
-									BuddyList.buds.get(l.split(" ")[1]).sendMessage(l.split(" ", 3)[2]);
-								} else if (l.startsWith("raw ")) { // send raw messaage to a buddy
-									BuddyList.buds.get(l.split(" ")[1]).sendRaw(l.split(" ", 3)[2]);
-
+							while (scanner.hasNextLine()) {
+								String nextLine = scanner.nextLine();
+								if (nextLine.startsWith("tskill ")) { // kills theirsock of the buddy following tskill
+									BuddyList.buds.get(nextLine.split(" ")[1]).getTheirSock().close();
+									BuddyList.buds.get(nextLine.split(" ")[1]).setTheirSock(null);//FIXME is this necessary?
+								} else if (nextLine.startsWith("oskill ")) { // kills oursock of the buddy following oskill
+									BuddyList.buds.get(nextLine.split(" ")[1]).getOurSock().close();
+									BuddyList.buds.get(nextLine.split(" ")[1]).setOurSock(null);//FIXME is this necessary?
+								} else if (nextLine.startsWith("msg ")) { // send messaage to a buddy
+									BuddyList.buds.get(nextLine.split(" ")[1]).sendMessage(nextLine.split(" ", 3)[2]);
+								} else if (nextLine.startsWith("raw ")) { // send raw messaage to a buddy
+									BuddyList.buds.get(nextLine.split(" ")[1]).sendRaw(nextLine.split(" ", 3)[2]);
 								}
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
+						} catch (Exception ex) {
+							ex.printStackTrace();
 						}
-						s.close();
-					} catch (Exception e) {
-						e.printStackTrace();
+						scanner.close();
+					} catch (Exception stackTrace) {
+						stackTrace.printStackTrace();
 					}
 				}
 

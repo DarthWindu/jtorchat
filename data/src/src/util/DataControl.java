@@ -50,9 +50,9 @@ public static String get_base_pwd() {
     String BASE_DIR = null;
 	
 	try {
-		if (TCPort.extern_source_path.length > 0)
+		if (TCPort.externalSourcePath.length > 0)
 		{
-			BASE_DIR = TCPort.extern_source_path[0];
+			BASE_DIR = TCPort.externalSourcePath[0];
 			BASE_DIR = new File(Config.BASE_DIR).getCanonicalPath() + "/";
 		}
 		else
